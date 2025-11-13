@@ -1,0 +1,5 @@
+# 1. Ignorar todas las dependencias de Node
+/node_modules
+
+# 2. Ignorar el archivo CSS generado
+/dist

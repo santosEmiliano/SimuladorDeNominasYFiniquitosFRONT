@@ -1,4 +1,3 @@
-
 document
   .getElementById("addDeductionBtn")
   .addEventListener("click", function () {
@@ -62,3 +61,5 @@ document
 
     /*Se supone que también hay que eliminar también en caso de que se haga un sobrecálculo o algo*/
   });
+
+  

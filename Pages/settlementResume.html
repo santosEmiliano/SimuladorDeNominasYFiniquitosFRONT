@@ -16,21 +16,33 @@
     <header class="bg-blue-200 w-full p-4 shadow">
       <div class="max-w-6xl mx-auto flex justify-between items-center">
         <h1 class="text-lg font-semibold">InovatioPyme</h1>
-        <nav class="flex space-x-6 text-sm">
-          <a href="index.html" class="hover:underline"> Datos de empleado </a>
-          <a href="percepciones.html" class="hover:underline">
+        <nav id="mainNav" class="flex space-x-6 text-sm">
+          <a
+            href="UserData.html"
+            class="font-semibold text-black hover:underline"
+          >
+            Datos de empleado
+          </a>
+
+          <a
+            id="nav-perceptions"
+            class="text-gray-400 cursor-not-allowed pointer-events-none transition-colors duration-300"
+          >
             Cálculo de percepciones
           </a>
-          <a href="deducciones.html" class="hover:underline">
+
+          <a
+            id="nav-deductions"
+            class="text-gray-400 cursor-not-allowed pointer-events-none transition-colors duration-300"
+          >
             Cálculo de deducciones
           </a>
+
           <a
-            href="resumen.html"
-            class="font-semibold border-b-2 border-gray-700 pb-1"
-            >Resumen</a
+            id="nav-resume"
+            class="text-gray-400 cursor-not-allowed pointer-events-none transition-colors duration-300"
           >
-          <a href="deducciones.html" class="hover:underline">
-            Descargar documentos
+            Resumen
           </a>
         </nav>
       </div>
@@ -47,5 +59,6 @@
         </p>
       </div>
     </footer>
+    <script src="../Scripts/headerFlow.js"></script>
   </body>
 </html>

@@ -16,20 +16,33 @@
     <header class="bg-blue-200 w-full p-4 shadow">
       <div class="max-w-6xl mx-auto flex justify-between items-center">
         <h1 class="text-lg font-semibold">InovatioPyme</h1>
-        <nav class="flex space-x-6 text-sm">
-          <a href="index.html" class="hover:underline"> Datos de empleado </a>
-          <a href="percepciones.html" class="hover:underline">
+        <nav id="mainNav" class="flex space-x-6 text-sm">
+          <a
+            href="UserData.html"
+            class="font-semibold text-black hover:underline"
+          >
+            Datos de empleado
+          </a>
+
+          <a
+            id="nav-perceptions"
+            class="text-gray-400 cursor-not-allowed pointer-events-none transition-colors duration-300"
+          >
             Cálculo de percepciones
           </a>
+
           <a
-            href="deducciones.html"
-            class="font-semibold border-b-2 border-gray-700 pb-1"
+            id="nav-deductions"
+            class="text-gray-400 cursor-not-allowed pointer-events-none transition-colors duration-300"
           >
             Cálculo de deducciones
           </a>
-          <a href="resumen.html" class="hover:underline">Resumen</a>
-          <a href="deducciones.html" class="hover:underline">
-            Descargar documentos
+
+          <a
+            id="nav-resume"
+            class="text-gray-400 cursor-not-allowed pointer-events-none transition-colors duration-300"
+          >
+            Resumen
           </a>
         </nav>
       </div>
@@ -40,7 +53,9 @@
       <div
         class="max-w-4xl mx-auto mt-10 bg-blue-50 border border-blue-200 rounded-xl p-6 shadow-md space-y-10"
       >
-        <h2 class="text-2xl font-semibold text-center mb-6">Deducciones</h2>
+        <h2 class="text-2xl font-semibold text-center mb-6">
+          Cálculo de Deducciones de Finiquito
+        </h2>
         <div class="bg-white border rounded-xl p-5 shadow-sm space-y-6">
           <div class="flex items-center justify-between">
             <label class="font-semibold text-gray-700">Ingreso Gravado:</label>
@@ -229,7 +244,7 @@
           <div id="deductionsContainer" class="mt-6 space-y-6"></div>
         </div>
 
-        <a href="resumen.html" class="flex justify-end align-middle"
+        <a href="settlementResume.html" class="flex justify-end align-middle"
           ><button
             type="submit"
             class="bg-blue-500 text-white px-6 py-2 rounded-xl shadow hover:bg-blue-700 transition-colors duration-700"
@@ -249,6 +264,7 @@
       </div>
     </footer>
 
-    <script src="/Scripts/deducciones.js"></script>
+    <script src="../Scripts/settlement.js"></script>
+    <script src="../Scripts/headerFlow.js"></script>
   </body>
 </html>

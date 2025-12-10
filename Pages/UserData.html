@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Cálculadora de Nómina y Finiquitos</title>
+    <title>Calculadora de Nómina y Finiquitos</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap"
       rel="stylesheet"
@@ -12,47 +12,53 @@
   </head>
 
   <body class="bg-blue-50 min-h-screen flex flex-col font-[Lato]">
-    <!-- Header Section -->
     <header class="bg-blue-200 w-full p-4 shadow">
       <div class="max-w-6xl mx-auto flex justify-between items-center">
         <h1 class="text-lg font-semibold">InovatioPyme</h1>
-        <nav class="flex space-x-6 text-sm">
+        <nav id="mainNav" class="flex space-x-6 text-sm">
           <a
-            href="index.html"
-            class="font-semibold border-b-2 border-gray-700 pb-1"
+            href="UserData.html"
+            class="font-semibold text-black hover:underline"
           >
             Datos de empleado
           </a>
-          <a href="percepciones.html" class="hover:underline">
+
+          <a
+            id="nav-perceptions"
+            class="text-gray-400 cursor-not-allowed pointer-events-none transition-colors duration-300"
+          >
             Cálculo de percepciones
           </a>
-          <a href="deducciones.html" class="hover:underline">
+
+          <a
+            id="nav-deductions"
+            class="text-gray-400 cursor-not-allowed pointer-events-none transition-colors duration-300"
+          >
             Cálculo de deducciones
           </a>
-          <a href="resumen.html" class="hover:underline">Resumen</a>
-          <a href="deducciones.html" class="hover:underline">
-            Descargar documentos
+
+          <a
+            id="nav-resume"
+            class="text-gray-400 cursor-not-allowed pointer-events-none transition-colors duration-300"
+          >
+            Resumen
           </a>
         </nav>
       </div>
     </header>
 
-    <!-- Form Section -->
     <main class="flex-1 p-6">
       <div class="max-w-6xl mx-auto">
         <h2 class="text-2xl font-bold mb-6">Datos del empleado</h2>
-        <form
-          action="percepciones.html"
-          method="GET"
-          class="grid grid-cols-3 gap-6"
-        >
+
+        <form id="employeeForm" class="grid grid-cols-3 gap-6">
           <div class="col-span-2 bg-white p-5 rounded-lg shadow-sm">
             <label class="text-sm font-semibold">Nombre</label>
             <input
               id="name"
               type="text"
               required
-              class="mt-1 w-full border rounded p-2 text-sm"
+              class="mt-1 w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none"
             />
           </div>
           <div class="bg-white p-5 rounded-lg shadow-sm">
@@ -61,7 +67,7 @@
               id="dateIn"
               type="date"
               required
-              class="mt-1 w-full border rounded p-2 text-sm"
+              class="mt-1 w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none"
             />
           </div>
           <div class="bg-white p-5 rounded-lg shadow-sm">
@@ -70,7 +76,7 @@
               id="rfc"
               type="text"
               required
-              class="mt-1 w-full border rounded p-2 text-sm"
+              class="mt-1 w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none"
             />
           </div>
           <div class="bg-white p-5 rounded-lg shadow-sm">
@@ -78,10 +84,10 @@
             <input
               id="salary"
               type="number"
-              step="0.001"
+              step="0.01"
               min="0"
               required
-              class="mt-1 w-full border rounded p-2 text-sm"
+              class="mt-1 w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none"
             />
           </div>
           <div class="bg-white p-5 rounded-lg shadow-sm">
@@ -90,7 +96,7 @@
               id="dept"
               type="text"
               required
-              class="mt-1 w-full border rounded p-2 text-sm"
+              class="mt-1 w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none"
             />
           </div>
           <div class="bg-white p-5 rounded-lg shadow-sm">
@@ -99,7 +105,7 @@
               id="curp"
               type="text"
               required
-              class="mt-1 w-full border rounded p-2 text-sm"
+              class="mt-1 w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none"
             />
           </div>
           <div class="bg-white p-5 rounded-lg shadow-sm">
@@ -109,7 +115,7 @@
               type="number"
               min="0"
               required
-              class="mt-1 w-full border rounded p-2 text-sm"
+              class="mt-1 w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none"
             />
           </div>
           <div class="bg-white p-5 rounded-lg shadow-sm">
@@ -118,7 +124,7 @@
               id="role"
               type="text"
               required
-              class="mt-1 w-full border rounded p-2 text-sm"
+              class="mt-1 w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none"
             />
           </div>
           <div class="bg-white p-5 rounded-lg shadow-sm">
@@ -127,7 +133,7 @@
               id="nss"
               type="text"
               required
-              class="mt-1 w-full border rounded p-2 text-sm"
+              class="mt-1 w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none"
             />
           </div>
           <div class="bg-white p-5 rounded-lg shadow-sm">
@@ -135,34 +141,45 @@
             <select
               id="period"
               required
-              class="mt-1 w-full border rounded p-2 text-sm"
+              class="mt-1 w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-400 outline-none"
             >
               <option value="">Selecciona</option>
-              <option>Semanal</option>
-              <option>Quincenal</option>
-              <option>Mensual</option>
+              <option value="Semanal">Semanal</option>
+              <option value="Quincenal">Quincenal</option>
+              <option value="Mensual">Mensual</option>
             </select>
           </div>
 
-          <a href="percepciones.html" class="flex justify-center align-middle"
-            ><button
-              type="submit"
-              class="bg-blue-500 text-white px-6 py-2 rounded-xl shadow hover:bg-blue-700 transition-colors duration-700"
+          <div class="col-span-3 flex justify-center gap-8 mt-4">
+            <button
+              type="button"
+              onclick="startFlow('paysheet')"
+              class="bg-blue-500 text-white px-6 py-2 rounded-xl shadow hover:bg-blue-700 hover:scale-105 transition-all duration-300 font-bold"
             >
-              Calcula tus percepciones
-            </button></a
-          >
+              Calcula tu Nómina
+            </button>
+
+            <button
+              type="button"
+              onclick="startFlow('settlement')"
+              class="bg-indigo-600 text-white px-6 py-2 rounded-xl shadow hover:bg-indigo-800 hover:scale-105 transition-all duration-300 font-bold"
+            >
+              Calcula tu Finiquito
+            </button>
+          </div>
         </form>
       </div>
     </main>
 
-    <!-- Footer section -->
-    <footer class="bg-blue-200 w-full p-4 shadow">
-      <div class="max-w-6xl mx-auto flex items-center">
+    <footer class="bg-blue-200 w-full p-4 shadow mt-auto">
+      <div class="max-w-6xl mx-auto flex items-center justify-center">
         <p class="text-sm text-center">
           © 2025 InovatioPyme. Todos los derechos reservados.
         </p>
       </div>
     </footer>
+
+    <script src="../Scripts/index.js"></script>
+    <script src="../Scripts/headerFlow.js"></script>
   </body>
 </html>

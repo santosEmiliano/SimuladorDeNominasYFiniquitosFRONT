@@ -171,10 +171,20 @@ async function handleDownload(format, flowType) {
     const datosCompletos = {
         ...finalData,
         datosExtra: {
-            ...userData,
-            // Agregamos fechas importantes para el recibo
+            name: userData.name || "No definido",
+            rfc: userData.rfc || "No definido",
+            
+
+            job: userData.role || "No definido", 
+            department: userData.dept || "No definido", 
+            nss: userData.nss || "No definido",
+            curp: userData.curp || "No definido",
+            period: userData.period || "No definido",
+            salary: userData.salary || "0",
+
             fechaIngreso: userData.dateIn,
-            fechaSalida: userData.dateOut || new Date().toISOString().split('T')[0], // Para finiquito
+            fechaSalida: userData.dateOut || new Date().toISOString().split('T')[0],
+            motivoBaja: userData.motivoBaja || "N/A",
             diasSalarioPendientes: userData.days
         }
     };

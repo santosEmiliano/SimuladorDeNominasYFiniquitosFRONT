@@ -4,12 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Calcular Percepciones Nómina</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <title>Cálculo de Percepciones Nómina</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap"
       rel="stylesheet"
     />
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   </head>
 
   <body
@@ -17,21 +17,17 @@
     data-step="perceptions"
     data-flow="paysheet"
   >
-    <!-- Header Section -->
     <header class="bg-blue-200 w-full p-4 shadow">
       <div class="max-w-6xl mx-auto flex justify-between items-center">
         <h1 class="text-lg font-semibold">InovatioPyme</h1>
         <nav id="mainNav" class="flex space-x-6 text-sm">
-          <a
-            href="UserData.html"
-            class="font-semibold text-black hover:underline"
-          >
+          <a href="UserData.html" class="font-semibold text-black hover:underline">
             Datos de empleado
           </a>
 
           <a
             id="nav-perceptions"
-            class="text-gray-400 cursor-not-allowed pointer-events-none transition-colors duration-300"
+            class="font-semibold border-b-2 border-gray-800 pb-1 cursor-pointer"
           >
             Cálculo de percepciones
           </a>
@@ -53,36 +49,27 @@
       </div>
     </header>
 
-    <!-- Form Section -->
     <main class="flex-grow">
-      <div
-        class="max-w-4xl mx-auto mt-10 bg-blue-50 border border-blue-200 rounded-xl p-6 shadow-md space-y-10"
-      >
-        <h3 class="text-2xl font-semibold text-center mb-6">
+      <div class="max-w-4xl mx-auto mt-10 bg-blue-50 border border-blue-200 rounded-xl p-6 shadow-md space-y-10">
+        
+        <h3 class="text-2xl font-semibold text-center mb-6 text-gray-800">
           Cálculo de Percepciones de Nómina
         </h3>
 
-        <div
-          class="max-w-4xl mx-auto mt-10 bg-white border rounded-xl shadow p-8"
-        >
+        <div class="max-w-4xl mx-auto bg-white border rounded-xl shadow p-8">
           <div class="space-y-6">
+            
             <div>
-              <label class="font-semibold block mb-2 text-gray-700"
-                >Salario base del periodo:</label
-              >
+              <label class="font-semibold block mb-2 text-gray-700">Salario base del periodo:</label>
               <div class="flex items-center">
-                <div id="baseSalary" class="text-3xl font-bold text-blue-600">
-                  $0.00
-                </div>
+                <div id="baseSalary" class="text-3xl font-bold text-blue-600">$0.00</div>
               </div>
             </div>
 
-            <hr class="border-gray-100" />
+            <hr class="border-gray-100">
 
             <div class="flex items-center justify-between">
-              <label class="text-sm font-medium text-gray-700"
-                >Horas extra trabajadas (Dobles):</label
-              >
+              <label class="text-sm font-medium text-gray-700">Horas extra trabajadas (Dobles):</label>
               <div class="flex items-center space-x-6">
                 <input
                   id="overtime"
@@ -92,24 +79,14 @@
                   min="0"
                 />
                 <div class="text-right">
-                  <span
-                    class="text-xs text-gray-400 block uppercase font-bold tracking-wider"
-                    >Total Estimado</span
-                  >
-                  <div
-                    id="overtimeTotal"
-                    class="text-lg font-semibold text-gray-800"
-                  >
-                    $0.00
-                  </div>
+                  <span class="text-xs text-gray-400 block uppercase font-bold tracking-wider">Total Estimado</span>
+                  <div id="overtimeTotal" class="text-lg font-semibold text-gray-800">$0.00</div>
                 </div>
               </div>
             </div>
 
             <div class="flex items-center justify-between">
-              <label class="text-sm font-medium text-gray-700"
-                >Días de vacaciones:</label
-              >
+              <label class="text-sm font-medium text-gray-700">Días de vacaciones a pagar:</label>
               <div class="flex items-center space-x-6">
                 <input
                   id="vacationDays"
@@ -119,102 +96,94 @@
                   min="0"
                 />
                 <div class="text-right">
-                  <span
-                    class="text-xs text-gray-400 block uppercase font-bold tracking-wider"
-                    >Total Estimado</span
-                  >
-                  <div
-                    id="vacationTotal"
-                    class="text-lg font-semibold text-gray-800"
-                  >
-                    $0.00
-                  </div>
+                  <span class="text-xs text-gray-400 block uppercase font-bold tracking-wider">Total Estimado</span>
+                  <div id="vacationTotal" class="text-lg font-semibold text-gray-800">$0.00</div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- aguinaldo -->
-        <div
-          class="max-w-4xl mx-auto mt-10 bg-white border rounded-xl shadow p-8"
-        >
-          <h3 class="text-lg font-bold mb-6">Aguinaldo</h3>
+        <div class="max-w-4xl mx-auto bg-white border rounded-xl shadow p-8">
+          <h3 class="text-lg font-bold mb-6 text-gray-800 border-b pb-2">Aguinaldo</h3>
+          
           <div class="space-y-6">
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-3 bg-blue-50 p-3 rounded-lg">
               <input
-                id="bonus"
+                id="bonusCheck"
                 type="checkbox"
-                class="h-5 w-5 text-blue-600 focus:ring-blue-300"
+                class="h-5 w-5 text-blue-600 focus:ring-blue-300 cursor-pointer"
               />
-              <label for="bonus" class="font-medium"
-                >Se contempla aguinaldo</label
-              >
+              <label for="bonusCheck" class="font-medium text-gray-700 cursor-pointer select-none">
+                Incluir pago de Aguinaldo en este periodo
+              </label>
             </div>
-            <div class="flex justify-between items-center">
-              <label class="text-sm font-medium">Días de aguinaldo:</label>
-              <input
-                id="bonusDays"
-                type="number"
-                class="w-24 border rounded p-2 focus:ring focus:ring-blue-200 text-right"
-                value="0"
-                min="0"
-              />
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="text-sm font-medium text-gray-600 block mb-1">Días de aguinaldo (Ley = 15):</label>
+                    <input
+                      id="bonusDays"
+                      type="number"
+                      class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-200 outline-none transition"
+                      value="15"
+                      min="0"
+                      disabled
+                    />
+                </div>
+                <div>
+                    <label class="text-sm font-medium text-gray-600 block mb-1">Días trabajados en el año:</label>
+                    <input
+                      id="workedDays"
+                      type="number"
+                      class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-200 outline-none transition"
+                      value="365"
+                      min="0"
+                      disabled
+                    />
+                </div>
             </div>
-            <div class="flex justify-between items-center">
-              <label class="text-sm font-medium">Días trabajados:</label>
-              <input
-                id="workedDays"
-                type="number"
-                class="w-24 border rounded p-2 focus:ring focus:ring-blue-200 text-right"
-                value="0"
-                min="0"
-              />
-            </div>
-            <div class="flex justify-between items-center pt-4 border-t">
-              <label class="text-sm font-medium">Total:</label>
-              <div class="flex items-center">
-                <span class="mr-2 font-semibold">$</span>
-                <input
-                  id="BonusTotal"
-                  type="number"
-                  class="w-28 border rounded p-2 text-right"
-                  value="0"
-                  readonly
-                />
+
+            <div class="flex justify-end items-center pt-4 border-t border-gray-100">
+              <div class="text-right">
+                <span class="text-xs text-gray-400 block uppercase font-bold tracking-wider">Total Aguinaldo</span>
+                <div id="bonusTotalLabel" class="text-2xl font-bold text-blue-800 opacity-50">$0.00</div>
               </div>
             </div>
           </div>
-
-          <button
-            id="addBonusBtn"
-            class="mt-6 bg-white border border-gray-300 rounded px-4 py-2 shadow hover:bg-gray-100 transition"
-          >
-            Agregar Bonos / Comisiones Personalizadas
-          </button>
-          <div id="bonusContainer" class="mt-6 space-y-6"></div>
         </div>
 
-        <a href="paysheetDeductions.html" class="flex justify-end align-middle"
-          ><button
-            type="submit"
-            class="bg-blue-500 text-white px-6 py-2 rounded-xl shadow hover:bg-blue-700 transition-colors duration-700"
-          >
-            Calcula tus Deducciones
-          </button></a
-        >
+        <div class="max-w-4xl mx-auto">
+             <button
+                id="addBonusBtn"
+                class="w-full bg-white border-2 border-dashed border-gray-300 text-gray-600 rounded-xl px-4 py-4 hover:bg-gray-50 hover:border-gray-400 transition font-bold"
+              >
+                + Agregar Bono o Comisión Personalizada
+              </button>
+              <div id="bonusContainer" class="mt-6 space-y-6"></div>
+        </div>
+
+        <div class="flex justify-end">
+            <button
+                type="submit"
+                class="bg-blue-600 text-white px-8 py-3 rounded-xl shadow-lg hover:bg-blue-700 hover:scale-105 transition-all duration-300 font-bold text-lg"
+            >
+                Calcular Deducciones →
+            </button>
+        </div>
+
       </div>
     </main>
 
-    <!-- Footer section -->
-    <footer class="bg-blue-200 w-full p-4 shadow">
-      <div class="max-w-6xl mx-auto flex items-center right">
+    <footer class="bg-blue-200 w-full p-4 shadow mt-10">
+      <div class="max-w-6xl mx-auto flex items-center justify-center">
         <p class="text-sm text-center">
           © 2025 InovatioPyme. Todos los derechos reservados.
         </p>
       </div>
     </footer>
-    <script type="module" src="../Scripts/perceptions.js"></script>
+
     <script src="../Scripts/headerFlow.js"></script>
+    <script type="module" src="../Scripts/perceptions.js"></script>
   </body>
 </html>

@@ -1,12 +1,10 @@
 import services from './services.js';
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Iniciar Restauración y UI
     initRealTimeCalculators(); 
     restoreDynamicBonuses(); 
     initAddBonusButton();
 
-    // Listener del botón Siguiente
     const btnSubmit = document.querySelector('button[type="submit"]');
     if (btnSubmit) {
         btnSubmit.addEventListener("click", handleCalculatePerceptions);
@@ -14,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ============================================
-// LÓGICA DE CÁLCULO EN TIEMPO REAL (HORAS Y VACACIONES)
+// LÓGICA DE CÁLCULO EN TIEMPO REAL
 // ============================================
 function initRealTimeCalculators() {
     const userDataJSON = sessionStorage.getItem("userData");
@@ -23,30 +21,44 @@ function initRealTimeCalculators() {
     const userData = JSON.parse(userDataJSON);
     const salarioDiario = parseFloat(userData.salary) || 0;
     
-    // Mostrar Salario Base (Estático)
+    // Mostrar Salario Base
     const diasPagados = parseFloat(userData.days) || 0;
     const sueldoTotal = salarioDiario * diasPagados;
     updateLabel("baseSalary", sueldoTotal);
 
-    // Referencias DOM
+    // Referencias DOM (Horas/Vacaciones)
     const inputOvertime = document.getElementById("overtime");
     const inputVacations = document.getElementById("vacationDays");
 
-    // Recuperar Inputs Guardados
+    // Referencias DOM (Aguinaldo)
+    const checkBonus = document.getElementById("bonusCheck");
+    const inputBonusDays = document.getElementById("bonusDays");
+    const inputWorkedDays = document.getElementById("workedDays");
+    const labelBonusTotal = document.getElementById("bonusTotalLabel");
+
+    // RECUPERAR DATOS GUARDADOS (Persistencia)
     const savedInputs = JSON.parse(sessionStorage.getItem("perceptions_inputs") || "{}");
+    
+    // Restaurar Horas/Vacaciones
     if (inputOvertime && savedInputs.overtime) inputOvertime.value = savedInputs.overtime;
     if (inputVacations && savedInputs.vacations) inputVacations.value = savedInputs.vacations;
 
-    // DEFINICIÓN DE FUNCIONES DE CÁLCULO
-    // Creamos las funciones aquí para poder llamarlas al inicio Y al escribir
+    // Restaurar Aguinaldo
+    if (checkBonus) {
+        if (savedInputs.bonusChecked) checkBonus.checked = true;
+        if (inputBonusDays && savedInputs.bonusDays) inputBonusDays.value = savedInputs.bonusDays;
+        if (inputWorkedDays && savedInputs.bonusWorked) inputWorkedDays.value = savedInputs.bonusWorked;
+    }
+
+    // FUNCIONES DE CÁLCULO
     
     const calcularHorasExtra = () => {
         if (!inputOvertime) return;
         const horas = parseFloat(inputOvertime.value) || 0;
         const valorHora = salarioDiario / 8;
-        const total = valorHora * 2 * horas; // Dobles
+        const total = valorHora * 2 * horas; 
         updateLabel("overtimeTotal", total);
-        saveFixedInputsState(); // Guardar cambios
+        saveFixedInputsState();
     };
 
     const calcularVacaciones = () => {
@@ -54,32 +66,68 @@ function initRealTimeCalculators() {
         const dias = parseFloat(inputVacations.value) || 0;
         const total = salarioDiario * dias;
         updateLabel("vacationTotal", total);
-        saveFixedInputsState(); // Guardar cambios
+        saveFixedInputsState();
     };
 
-    // ASIGNAR LISTENERS (Escuchar cambios)
+    const calcularAguinaldo = () => {
+        if (!checkBonus) return;
+        
+        const isActive = checkBonus.checked;
+        const diasAguinaldo = parseFloat(inputBonusDays.value) || 15;
+        const diasTrabajados = parseFloat(inputWorkedDays.value) || 0;
+
+        // Activar/Desactivar inputs
+        if (inputBonusDays) inputBonusDays.disabled = !isActive;
+        if (inputWorkedDays) inputWorkedDays.disabled = !isActive;
+        
+        // Estilo visual (Opacidad)
+        if (labelBonusTotal) labelBonusTotal.classList.toggle("opacity-50", !isActive);
+
+        if (!isActive) {
+            if (labelBonusTotal) labelBonusTotal.innerText = "$0.00";
+        } else {
+            // Fórmula: (Salario * Días_Ley) / 365 * Días_Trabajados
+            const montoAnual = salarioDiario * diasAguinaldo;
+            const proporcional = (montoAnual / 365) * diasTrabajados;
+            updateLabel("bonusTotalLabel", proporcional);
+        }
+        saveFixedInputsState();
+    };
+
+    // LISTENERS
     if (inputOvertime) inputOvertime.addEventListener("input", calcularHorasExtra);
     if (inputVacations) inputVacations.addEventListener("input", calcularVacaciones);
+    
+    if (checkBonus) {
+        checkBonus.addEventListener("change", calcularAguinaldo);
+        inputBonusDays.addEventListener("input", calcularAguinaldo);
+        inputWorkedDays.addEventListener("input", calcularAguinaldo);
+    }
 
-    // EJECUCIÓN INICIAL (¡Esto llena los labels al cargar la página!)
+    // EJECUCIÓN INICIAL
     calcularHorasExtra();
     calcularVacaciones();
+    calcularAguinaldo();
 }
 
 function saveFixedInputsState() {
-    const overtime = document.getElementById('overtime')?.value || 0;
-    const vacations = document.getElementById('vacationDays')?.value || 0;
-    sessionStorage.setItem("perceptions_inputs", JSON.stringify({ overtime, vacations }));
+    // Guardamos todo en un solo objeto
+    const state = {
+        overtime: document.getElementById('overtime')?.value || 0,
+        vacations: document.getElementById('vacationDays')?.value || 0,
+        bonusChecked: document.getElementById('bonusCheck')?.checked || false,
+        bonusDays: document.getElementById('bonusDays')?.value || 15,
+        bonusWorked: document.getElementById('workedDays')?.value || 365
+    };
+    sessionStorage.setItem("perceptions_inputs", JSON.stringify(state));
 }
 
 // ============================================
 // LÓGICA DE BONOS DINÁMICOS
 // ============================================
-
 function initAddBonusButton() {
     const addBtn = document.getElementById("addBonusBtn");
     if (!addBtn) return;
-
     addBtn.addEventListener("click", () => {
         createBonusRow(); 
         saveBonusesToStorage();
@@ -94,29 +142,28 @@ function restoreDynamicBonuses() {
 function createBonusRow(data = null) {
     const container = document.createElement("div");
     container.className = "bonus-card border rounded-xl p-6 shadow max-w-3xl mx-auto bg-white space-y-4 relative group mb-4 transition-all duration-300 hover:shadow-md";
-    
     container.innerHTML = `
     <div class="flex justify-between items-center mb-2">
         <h3 class="text-lg font-semibold text-gray-700">Percepción Personalizada</h3>
         <button type="button" class="delete-bonus-btn text-red-500 hover:text-red-700 font-bold px-3 py-1 bg-red-50 rounded transition">Eliminar</button>
     </div>
     <div class="mb-4">
-        <label class="font-medium text-gray-600 block mb-1">Nombre de la percepción:</label>
-        <input class="perceptionName border border-gray-300 rounded-lg p-2 w-full focus:ring-2 focus:ring-blue-200 outline-none transition" type="text" placeholder="Ej. Bono de puntualidad" />
+        <label class="font-medium text-gray-600 block mb-1">Nombre:</label>
+        <input class="perceptionName border border-gray-300 rounded-lg p-2 w-full focus:ring-2 focus:ring-blue-200 outline-none" type="text" placeholder="Ej. Bono puntualidad" />
     </div>
     <div class="grid grid-cols-3 gap-4">
         <label class="font-medium text-gray-600 block">Porcentaje (%):
-            <input class="perceptionPercentage border border-gray-300 rounded-lg p-2 w-full mt-1 focus:ring-2 focus:ring-blue-200 outline-none" type="number" min="0" placeholder="0" />
+            <input class="perceptionPercentage border border-gray-300 rounded-lg p-2 w-full mt-1 outline-none" type="number" min="0" />
         </label>
         <label class="font-medium text-gray-600 block">Base ($):
-            <input class="perceptionBase border border-gray-300 rounded-lg p-2 w-full mt-1 focus:ring-2 focus:ring-blue-200 outline-none" type="number" min="0" placeholder="0.00" />
+            <input class="perceptionBase border border-gray-300 rounded-lg p-2 w-full mt-1 outline-none" type="number" min="0" />
         </label>
-        <label class="font-medium text-gray-600 block">Cuota Fija ($):
-            <input class="perceptionFixed border border-gray-300 rounded-lg p-2 w-full mt-1 focus:ring-2 focus:ring-blue-200 outline-none" type="number" min="0" placeholder="0.00" />
+        <label class="font-medium text-gray-600 block">Fijo ($):
+            <input class="perceptionFixed border border-gray-300 rounded-lg p-2 w-full mt-1 outline-none" type="number" min="0" />
         </label>
     </div>
     <div class="mt-4 p-3 bg-gray-50 rounded-lg flex justify-between items-center border border-gray-100">
-        <span class="font-bold text-gray-700">Total a Pagar:</span>
+        <span class="font-bold text-gray-700">Total:</span>
         <div class="flex items-center">
              <span class="text-gray-500 mr-2">$</span>
              <input class="perceptionTotal bg-transparent font-bold text-xl text-green-600 text-right w-32 outline-none" type="number" readonly value="0.00" />
@@ -124,7 +171,8 @@ function createBonusRow(data = null) {
     </div>`;
 
     document.getElementById("bonusContainer").appendChild(container);
-
+    
+    // Referencias
     const iName = container.querySelector(".perceptionName");
     const iPct = container.querySelector(".perceptionPercentage");
     const iBase = container.querySelector(".perceptionBase");
@@ -140,8 +188,8 @@ function createBonusRow(data = null) {
     }
 
     const inputs = [iName, iPct, iBase, iFixed];
-    inputs.forEach(input => {
-        input.addEventListener('input', () => {
+    inputs.forEach(inp => {
+        inp.addEventListener('input', () => {
             calculateRowTotal(iPct, iBase, iFixed, iTotal);
             saveBonusesToStorage();
         });
@@ -196,18 +244,37 @@ async function handleCalculatePerceptions(e) {
     const horasDobles = Number(document.getElementById('overtime')?.value) || 0;
     const diasVacaciones = Number(document.getElementById('vacationDays')?.value) || 0;
 
-    // Aseguramos guardar estado antes de salir
+    // Guardar estado antes de salir
     saveFixedInputsState();
     saveBonusesToStorage();
 
-    // Recolectar Bonos (Manuales + Vacaciones)
+    // RECOLECTAR BONOS DINÁMICOS
     let listaBonos = getBonusesListFromDOM();
 
+    // AGREGAR VACACIONES (Si aplica)
     if (diasVacaciones > 0 && flowType === 'paysheet') {
         const montoVacaciones = salarioDiario * diasVacaciones;
         const montoPrima = montoVacaciones * 0.25;
         listaBonos.push({ nombre: `Pago de Vacaciones (${diasVacaciones} días)`, percepcion: Number(montoVacaciones.toFixed(2)) });
         listaBonos.push({ nombre: "Prima Vacacional (25%)", percepcion: Number(montoPrima.toFixed(2)) });
+    }
+
+    // AGREGAR AGUINALDO (Si está activo)
+    const checkBonus = document.getElementById("bonusCheck");
+    if (checkBonus && checkBonus.checked && flowType === 'paysheet') {
+        const diasAguinaldo = Number(document.getElementById("bonusDays").value);
+        const diasTrabajados = Number(document.getElementById("workedDays").value);
+        
+        // Fórmula proporcional
+        const montoAnual = salarioDiario * diasAguinaldo;
+        const proporcional = (montoAnual / 365) * diasTrabajados;
+
+        if (proporcional > 0) {
+            listaBonos.push({ 
+                nombre: "Aguinaldo (Proporcional)", 
+                percepcion: Number(proporcional.toFixed(2)) 
+            });
+        }
     }
 
     let payload = {};
@@ -219,7 +286,7 @@ async function handleCalculatePerceptions(e) {
             horasExtraDobles: horasDobles,
             horasExtraTriples: 0, 
             primaDominical: false,
-            otrosBonos: listaBonos 
+            otrosBonos: listaBonos // Aquí van Vacaciones + Aguinaldo + Personalizados
         };
     } else {
         payload = {
@@ -229,7 +296,7 @@ async function handleCalculatePerceptions(e) {
             motivoBaja: userData.motivoBaja || "renuncia_voluntaria",
             diasVacacionesPendientes: diasVacaciones, 
             diasSalarioPendientes: Number(userData.days) || 0,
-            otrosBonos: getBonusesListFromDOM() 
+            otrosBonos: getBonusesListFromDOM()
         };
     }
 

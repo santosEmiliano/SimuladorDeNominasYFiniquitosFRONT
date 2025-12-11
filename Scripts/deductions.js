@@ -1,19 +1,20 @@
 import services from './services.js';
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Inicializar UI de dinámicos
-    initDynamicDeductions();
+    // Inicializar UI
+    initAddDeductionButton();
     
-    // Cargar datos del paso anterior (importante para la Base Gravable)
+    // Cargar datos del paso anterior (Base Gravable)
     loadPreviousStepData();
 
-    // Restaurar estado de checkboxes e inputs fijos (Infonavit, etc)
+    // Restaurar estado (Checkboxes fijos + Deducciones dinámicas)
     restoreDeductionInputsState();
+    restoreDynamicDeductions();
     
-    // Activar calculadoras y listeners de guardado
+    // Activar calculadoras locales
     initLocalCalculators(); 
 
-    // Pre-calcular impuestos estándar (ISR/IMSS)
+    // Pre-cálculo silencioso (ISR/IMSS)
     previewStandardDeductions();
 
     // Listener del botón Siguiente
@@ -24,27 +25,137 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================
-// PERSISTENCIA Y RESTAURACIÓN (NUEVO)
+// LÓGICA DE DEDUCCIONES DINÁMICAS (NUEVO)
+// ==========================================
+
+function initAddDeductionButton() {
+    const btn = document.getElementById("addDeductionBtn");
+    if (!btn) return;
+
+    btn.addEventListener("click", () => {
+        createDeductionRow();
+        saveDynamicDeductions(); // Guardamos el estado al agregar
+    });
+}
+
+function restoreDynamicDeductions() {
+    // Recuperamos la lista guardada
+    const savedList = JSON.parse(sessionStorage.getItem("deductions_custom_list") || "[]");
+    savedList.forEach(data => createDeductionRow(data));
+}
+
+function createDeductionRow(data = null) {
+    const container = document.getElementById("deductionsContainer");
+    if (!container) return;
+
+    const card = document.createElement("div");
+    card.className = "deduction-card border rounded-xl p-6 bg-white shadow max-w-3xl mx-auto space-y-4 mb-4 relative transition-all duration-300 hover:shadow-md";
+    
+    // HTML inyectado
+    card.innerHTML = `
+        <div class="flex justify-between items-center mb-2">
+             <h3 class="text-lg font-semibold text-gray-700">Deducción Personalizada</h3>
+             <button type="button" class="deleteDeduction text-red-500 hover:text-red-700 font-bold px-3 py-1 bg-red-50 rounded transition">Eliminar</button>
+        </div>
+
+        <div class="mb-4">
+            <label class="font-medium text-gray-600 block mb-1">Nombre de la deducción:</label>
+            <input class="deductionName border border-gray-300 rounded-lg p-2 w-full focus:ring-2 focus:ring-blue-200 outline-none transition" type="text" placeholder="Ej. Préstamo personal" />
+        </div>
+
+        <div class="grid grid-cols-3 gap-6">
+            <label class="font-medium text-gray-600 block">Porcentaje (%):
+                <input class="deductionPercentage mt-1 border border-gray-300 rounded-lg p-2 w-full outline-none focus:ring-2 focus:ring-blue-200" type="number" min="0" placeholder="0" />
+            </label>
+            <label class="font-medium text-gray-600 block">Cuota Fija ($):
+                <input class="deductionFixed mt-1 border border-gray-300 rounded-lg p-2 w-full outline-none focus:ring-2 focus:ring-blue-200" type="number" min="0" placeholder="0.00" />
+            </label>
+            
+            <div class="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                <label class="font-bold text-gray-700 block text-sm">Total:</label>
+                <div class="flex items-center mt-1">
+                    <span class="text-gray-500 mr-1">$</span>
+                    <input class="deductionTotal bg-transparent font-bold text-lg text-red-600 w-full outline-none" type="number" readonly value="0.00" />
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(card);
+
+    // Referencias
+    const iName = card.querySelector(".deductionName");
+    const iPct = card.querySelector(".deductionPercentage");
+    const iFixed = card.querySelector(".deductionFixed");
+    const iTotal = card.querySelector(".deductionTotal");
+
+    // Si es restauración, llenamos datos
+    if (data) {
+        iName.value = data.nombre || "";
+        iPct.value = data.porcentaje || "";
+        iFixed.value = data.fijo || "";
+        calculateDynamicRow(iPct, iFixed, iTotal);
+    }
+
+    // Listeners: Calcular y Guardar al escribir
+    const inputs = [iName, iPct, iFixed];
+    inputs.forEach(inp => {
+        inp.addEventListener("input", () => {
+            calculateDynamicRow(iPct, iFixed, iTotal);
+            saveDynamicDeductions();
+        });
+    });
+
+    // Eliminar
+    card.querySelector(".deleteDeduction").addEventListener("click", () => {
+        card.remove();
+        saveDynamicDeductions();
+    });
+}
+
+function calculateDynamicRow(iPct, iFixed, iTotal) {
+    const base = Number(document.getElementById("DeductionsGravado").value) || 0;
+    const pct = parseFloat(iPct.value) || 0;
+    const fixed = parseFloat(iFixed.value) || 0;
+    
+    const total = (base * (pct / 100)) + fixed;
+    iTotal.value = total.toFixed(2);
+}
+
+function saveDynamicDeductions() {
+    const container = document.getElementById("deductionsContainer");
+    const list = [];
+    if (container) {
+        const cards = container.querySelectorAll(".deduction-card");
+        cards.forEach(card => {
+            list.push({
+                nombre: card.querySelector(".deductionName").value,
+                porcentaje: card.querySelector(".deductionPercentage").value,
+                fijo: card.querySelector(".deductionFixed").value
+            });
+        });
+    }
+    sessionStorage.setItem("deductions_custom_list", JSON.stringify(list));
+}
+
+// ==========================================
+// PERSISTENCIA DE INPUTS FIJOS (Infonavit, etc)
 // ==========================================
 
 function saveDeductionInputsState() {
     const state = {
-        // Infonavit
         infonavitCheck: document.getElementById("infonavitCheck")?.checked || false,
         infonavitPct: document.getElementById("DeductionsPercentageInfontavit")?.value || "",
         infonavitFixed: document.getElementById("DeductionsFixedFeeInfonavit")?.value || "",
         
-        // Pensión
         maintenanceCheck: document.getElementById("maintenanceCheck")?.checked || false,
         maintenancePct: document.getElementById("DeductionsPercentageMaintenance")?.value || "",
         maintenanceFixed: document.getElementById("DeductionsFixedFeeMaintenance")?.value || "",
 
-        // Fonacot
         fonacotCheck: document.getElementById("FonacotCheck")?.checked || false,
         fonacotPct: document.getElementById("DeductionsPercentageFonacot")?.value || "",
         fonacotFixed: document.getElementById("DeductionsFixedFeeFonacot")?.value || "",
 
-        // ISN
         isnCheck: document.getElementById("ApplyISN")?.checked || false
     };
     sessionStorage.setItem("deductions_inputs", JSON.stringify(state));
@@ -53,60 +164,35 @@ function saveDeductionInputsState() {
 function restoreDeductionInputsState() {
     const stateJSON = sessionStorage.getItem("deductions_inputs");
     if (!stateJSON) return;
-
     const state = JSON.parse(stateJSON);
 
-    // Helper para restaurar un bloque completo
     const restoreBlock = (checkId, pctId, fixId, totalId, savedCheck, savedPct, savedFix) => {
         const elCheck = document.getElementById(checkId);
         const elPct = document.getElementById(pctId);
         const elFix = document.getElementById(fixId);
-
         if (elCheck) elCheck.checked = savedCheck;
         if (elPct) elPct.value = savedPct;
         if (elFix) elFix.value = savedFix;
-
-        // Disparamos el cálculo visual inmediato
         calculateRow(checkId, pctId, fixId, totalId);
     };
 
-    // Restauramos cada sección
-    restoreBlock(
-        "infonavitCheck", "DeductionsPercentageInfontavit", "DeductionsFixedFeeInfonavit", "DeductionsTotalInfonavit",
-        state.infonavitCheck, state.infonavitPct, state.infonavitFixed
-    );
+    restoreBlock("infonavitCheck", "DeductionsPercentageInfontavit", "DeductionsFixedFeeInfonavit", "DeductionsTotalInfonavit", state.infonavitCheck, state.infonavitPct, state.infonavitFixed);
+    restoreBlock("maintenanceCheck", "DeductionsPercentageMaintenance", "DeductionsFixedFeeMaintenance", "DeductionsTotalMaintenance", state.maintenanceCheck, state.maintenancePct, state.maintenanceFixed);
+    restoreBlock("FonacotCheck", "DeductionsPercentageFonacot", "DeductionsFixedFeeFonacot", "DeductionsTotalFonacot", state.fonacotCheck, state.fonacotPct, state.fonacotFixed);
 
-    restoreBlock(
-        "maintenanceCheck", "DeductionsPercentageMaintenance", "DeductionsFixedFeeMaintenance", "DeductionsTotalMaintenance",
-        state.maintenanceCheck, state.maintenancePct, state.maintenanceFixed
-    );
-
-    restoreBlock(
-        "FonacotCheck", "DeductionsPercentageFonacot", "DeductionsFixedFeeFonacot", "DeductionsTotalFonacot",
-        state.fonacotCheck, state.fonacotPct, state.fonacotFixed
-    );
-
-    // ISN
     const isnCheck = document.getElementById("ApplyISN");
     if (isnCheck) isnCheck.checked = state.isnCheck;
 }
 
 // ==========================================
-// CALCULADORAS LOCALES
+// CALCULADORAS LOCALES (Checkboxes)
 // ==========================================
 
 function initLocalCalculators() {
-    // Configura los listeners para calcular Y guardar al mismo tiempo
     const setupCalc = (checkId, pctId, fixId, totalId) => {
-        const inputs = [
-            document.getElementById(checkId), 
-            document.getElementById(pctId), 
-            document.getElementById(fixId)
-        ];
-        
+        const inputs = [document.getElementById(checkId), document.getElementById(pctId), document.getElementById(fixId)];
         inputs.forEach(el => {
             if (el) {
-                // Al escribir o cambiar checkbox: Calculamos y Guardamos
                 const eventType = el.type === 'checkbox' ? 'change' : 'input';
                 el.addEventListener(eventType, () => {
                     calculateRow(checkId, pctId, fixId, totalId);
@@ -115,27 +201,21 @@ function initLocalCalculators() {
             }
         });
     };
-
     setupCalc("infonavitCheck", "DeductionsPercentageInfontavit", "DeductionsFixedFeeInfonavit", "DeductionsTotalInfonavit");
     setupCalc("maintenanceCheck", "DeductionsPercentageMaintenance", "DeductionsFixedFeeMaintenance", "DeductionsTotalMaintenance");
     setupCalc("FonacotCheck", "DeductionsPercentageFonacot", "DeductionsFixedFeeFonacot", "DeductionsTotalFonacot");
 
-    // Listener especial para ISN
     const isnCheck = document.getElementById("ApplyISN");
-    if (isnCheck) {
-        isnCheck.addEventListener("change", saveDeductionInputsState);
-    }
+    if (isnCheck) isnCheck.addEventListener("change", saveDeductionInputsState);
 }
 
 function calculateRow(checkId, pctId, fixId, totalId) {
     const isChecked = document.getElementById(checkId)?.checked;
     const output = document.getElementById(totalId);
-    
     if (!isChecked) {
         if (output) output.innerText = "$0.00";
         return;
     }
-
     const pct = Number(document.getElementById(pctId)?.value) || 0;
     const fixed = Number(document.getElementById(fixId)?.value) || 0;
     const base = Number(document.getElementById("DeductionsGravado").value) || 0;
@@ -145,14 +225,13 @@ function calculateRow(checkId, pctId, fixId, totalId) {
 }
 
 // ==========================================
-// PRE-CÁLCULO SILENCIOSO (ISR/IMSS)
+// PRE-CÁLCULO & ENVÍO
 // ==========================================
+
 async function previewStandardDeductions() {
     const flowType = sessionStorage.getItem("currentFlowType") || "paysheet";
     const payload = buildPayload(flowType, []); 
-    
     if (!payload) return; 
-
     try {
         const result = await services.calculateDeductions(flowType, payload);
         if (result.detallesCalculo) {
@@ -162,27 +241,16 @@ async function previewStandardDeductions() {
             const imssVal = result.detallesCalculo.imssDeterminado || 0;
             updateInputCurrency("DeductionsIMSS", imssVal);
         }
-    } catch (error) {
-        console.warn("Pre-cálculo visual:", error);
-    }
+    } catch (error) { console.warn("Pre-cálculo:", error); }
 }
-
-function updateInputCurrency(id, value) {
-    const input = document.getElementById(id);
-    if (input) input.value = value.toFixed(2);
-}
-
-// ==========================================
-// ENVÍO DE DATOS
-// ==========================================
 
 async function handleCalculateDeductions(e) {
     e.preventDefault();
-
     const flowType = sessionStorage.getItem("currentFlowType") || "paysheet";
     
-    // Aseguramos guardar el estado final antes de salir
+    // Guardamos estado final
     saveDeductionInputsState();
+    saveDynamicDeductions();
 
     const listaAdeudos = collectAllDeductions();
     const payload = buildPayload(flowType, listaAdeudos);
@@ -202,8 +270,7 @@ async function handleCalculateDeductions(e) {
         sessionStorage.setItem("step_deductions_data", JSON.stringify(result));
         sessionStorage.setItem("step_deductions_completed", "true");
 
-        const nextUrl = flowType === 'paysheet' ? 'paysheetResume.html' : 'settlementResume.html';
-        window.location.href = nextUrl;
+        window.location.href = flowType === 'paysheet' ? 'paysheetResume.html' : 'settlementResume.html';
 
     } catch (error) {
         console.error(error);
@@ -213,10 +280,13 @@ async function handleCalculateDeductions(e) {
     }
 }
 
+// ==========================================
+// UTILERIAS Y RECOLECCIÓN
+// ==========================================
+
 function buildPayload(flowType, listaAdeudos) {
     const userData = JSON.parse(sessionStorage.getItem("userData"));
     const step1Data = JSON.parse(sessionStorage.getItem("step_perceptions_data"));
-
     if (!userData || !step1Data) return null;
 
     if (flowType === 'paysheet') {
@@ -237,43 +307,23 @@ function buildPayload(flowType, listaAdeudos) {
     }
 }
 
-// ==========================================
-// UTILERIAS
-// ==========================================
-
-function loadPreviousStepData() {
-    const step1Data = JSON.parse(sessionStorage.getItem("step_perceptions_data"));
-    if (!step1Data) return;
-
-    const inputGravado = document.getElementById("DeductionsGravado");
-    if (inputGravado) {
-        const gravadoTotal = step1Data.baseGravableISR 
-            || ((step1Data.detallesCalculo?.baseGravableOrdinaria || 0) + (step1Data.detallesCalculo?.baseGravableSeparacion || 0));
-        inputGravado.value = gravadoTotal.toFixed(2);
-    }
-}
-
-function getMoneyValue(elementId) {
-    const el = document.getElementById(elementId);
-    if (!el) return 0;
-    return Number(el.innerText.replace(/[^0-9.-]+/g,"")) || 0;
-}
-
 function collectAllDeductions() {
     let adeudos = [];
 
-    // Dinámicos
+    // Recolectar Dinámicas
     const container = document.getElementById("deductionsContainer");
     if (container) {
-        for (let row of container.children) {
-            const monto = Number(row.querySelector(".deductionTotal")?.value.replace('$','')) || 0;
-            if (monto > 0) {
-                adeudos.push({ nombre: "Deducción Personalizada", deduccion: monto });
+        const cards = container.querySelectorAll(".deduction-card");
+        cards.forEach(card => {
+            const name = card.querySelector(".deductionName").value || "Deducción Personalizada";
+            const amount = Number(card.querySelector(".deductionTotal").value) || 0;
+            if (amount > 0) {
+                adeudos.push({ nombre: name, deduccion: amount });
             }
-        }
+        });
     }
 
-    // Fijos (Checkboxes)
+    // Fijos
     const checkDeduction = (checkId, totalId, label) => {
         if (document.getElementById(checkId)?.checked) {
             const total = getMoneyValue(totalId);
@@ -284,7 +334,6 @@ function collectAllDeductions() {
     checkDeduction("maintenanceCheck", "DeductionsTotalMaintenance", "Pensión Alimenticia");
     checkDeduction("FonacotCheck", "DeductionsTotalFonacot", "FONACOT");
 
-    // ISN
     if (document.getElementById("ApplyISN")?.checked) {
          const base = Number(document.getElementById("DeductionsGravado").value) || 0;
          const isn = base * 0.02; 
@@ -294,36 +343,24 @@ function collectAllDeductions() {
     return adeudos;
 }
 
-function initDynamicDeductions() {
-    const btn = document.getElementById("addDeductionBtn");
-    if (!btn) return;
+function loadPreviousStepData() {
+    const step1Data = JSON.parse(sessionStorage.getItem("step_perceptions_data"));
+    if (!step1Data) return;
+    const inputGravado = document.getElementById("DeductionsGravado");
+    if (inputGravado) {
+        const gravadoTotal = step1Data.baseGravableISR 
+            || ((step1Data.detallesCalculo?.baseGravableOrdinaria || 0) + (step1Data.detallesCalculo?.baseGravableSeparacion || 0));
+        inputGravado.value = gravadoTotal.toFixed(2);
+    }
+}
 
-    btn.addEventListener("click", function () {
-        const wrap = document.createElement("div");
-        wrap.className = "border rounded-xl p-6 bg-white shadow max-w-3xl mx-auto space-y-4 mb-4 relative";
-        
-        wrap.innerHTML = `
-            <div class="flex justify-between items-center">
-                 <label class="font-semibold text-gray-700">Deducción personalizada</label>
-                 <button type="button" class="deleteDeduction text-red-500 hover:text-red-700 text-sm font-bold">Eliminar</button>
-            </div>
-            <div class="grid grid-cols-3 gap-6 mt-2">
-                <label class="font-medium">Porcentaje: <input class="deductionPercentage mt-1 border rounded-lg p-2 w-full" type="number" min="0" placeholder="0" /></label>
-                <label class="font-medium">Cuota Fija: <input class="deductionFixed mt-1 border rounded-lg p-2 w-full" type="number" min="0" placeholder="0" /></label>
-                <label class="font-medium">Total: <input class="deductionTotal mt-1 border rounded-lg p-2 w-full bg-gray-50" type="text" readonly value="$0.00" /></label>
-            </div>
-        `;
-        document.getElementById("deductionsContainer").appendChild(wrap);
+function updateInputCurrency(id, value) {
+    const input = document.getElementById(id);
+    if (input) input.value = value.toFixed(2);
+}
 
-        const inputs = wrap.querySelectorAll("input:not([readonly])");
-        inputs.forEach(inp => inp.addEventListener("input", () => {
-             const pct = Number(wrap.querySelector(".deductionPercentage").value) || 0;
-             const fixed = Number(wrap.querySelector(".deductionFixed").value) || 0;
-             const base = Number(document.getElementById("DeductionsGravado").value) || 0;
-             const total = (base * (pct / 100)) + fixed;
-             wrap.querySelector(".deductionTotal").value = total.toFixed(2);
-        }));
-
-        wrap.querySelector(".deleteDeduction").addEventListener("click", () => wrap.remove());
-    });
+function getMoneyValue(elementId) {
+    const el = document.getElementById(elementId);
+    if (!el) return 0;
+    return Number(el.innerText.replace(/[^0-9.-]+/g,"")) || 0;
 }
